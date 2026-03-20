@@ -37,6 +37,7 @@ import {
   buildLoadOptions,
 } from './types.js';
 import { LOKBindings } from './lok-bindings.js';
+import { resolveRuntimeWasmLoader } from './runtime.js';
 
 /** Emscripten worker with Node.js-specific methods */
 interface EmscriptenWorker {
@@ -235,23 +236,25 @@ export class LibreOfficeConverter implements ILibreOfficeConverter {
   }
 
   /**
-   * Load the Emscripten WASM module (Node.js only)
-   * Requires wasmLoader option to be provided for bundler compatibility
+   * Load the Emscripten WASM module (Node.js/Bun)
    */
   private async loadModule(): Promise<EmscriptenModule> {
     if (this.options.verbose) {
       console.log('[LibreOfficeConverter] Loading WASM module...', this.options.wasmPath, this.options.workerPath, this.options.wasmLoader);
     }
 
-    // wasmLoader must be provided - no dynamic require
-    if (!this.options.wasmLoader) {
+    let resolvedRuntime: Awaited<ReturnType<typeof resolveRuntimeWasmLoader>>;
+    try {
+      resolvedRuntime = await resolveRuntimeWasmLoader(this.options.wasmPath, this.options.wasmLoader);
+    } catch (error) {
       throw new ConversionError(
         ConversionErrorCode.WASM_NOT_INITIALIZED,
-        'wasmLoader option is required. Import the loader and pass it:\n' +
-        '  import wasmLoader from "@matbee/libreoffice-converter/wasm/loader.cjs";\n' +
-        '  new LibreOfficeConverter({ wasmLoader })'
+        `Failed to resolve LibreOffice WASM runtime assets: ${String(error)}`
       );
     }
+
+    this.options.wasmPath = resolvedRuntime.wasmDir;
+    this.options.wasmLoader = resolvedRuntime.wasmLoader;
 
     // Build loader config
     const config = {
@@ -264,7 +267,7 @@ export class LibreOfficeConverter implements ILibreOfficeConverter {
       },
     };
 
-    return await this.options.wasmLoader.createModule(config);
+    return await resolvedRuntime.wasmLoader.createModule(config);
   }
 
   /**

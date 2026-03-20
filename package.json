@@ -103,7 +103,8 @@
   "homepage": "https://github.com/matbeedotcom/libreoffice-document-converter#readme",
   "sideEffects": false,
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "bun": ">=1.1.0"
   },
   "peerDependencies": {
     "jszip": ">=3.0.0",

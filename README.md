@@ -7,12 +7,17 @@ Convert documents between formats (DOCX, PDF, XLSX, PPTX, etc.) in Node.js or br
 - **Pure WebAssembly** - No native LibreOffice installation required
 - **Wide Format Support** - Convert between 15+ document formats
 - **Cross-Platform** - Works in Node.js and browsers
+- **Bun Support** - Works in Bun scripts and Bun single-file executables
 - **Fast** - ~35ms per conversion after initialization
 
 ## Installation
 
 ```bash
 npm install @matbee/libreoffice-converter
+```
+
+```bash
+bun add @matbee/libreoffice-converter
 ```
 
 ## Demo
@@ -30,6 +35,19 @@ const docx = fs.readFileSync('document.docx');
 const result = await convertDocument(docx, { outputFormat: 'pdf' });
 fs.writeFileSync('document.pdf', result.data);
 ```
+
+### Bun
+
+```javascript
+import { convertDocument } from '@matbee/libreoffice-converter';
+import { readFile, writeFile } from 'fs/promises';
+
+const input = await readFile('document.docx');
+const result = await convertDocument(input, { outputFormat: 'pdf' });
+await writeFile('document.pdf', result.data);
+```
+
+The same API also works when your Bun entrypoint is compiled with `bun build --compile`.
 
 ### Export as Image
 
@@ -173,10 +191,12 @@ await converter.initialize();
 
 - **[API Reference](docs/API.md)** - Complete API documentation, types, configuration options
 - **[Examples](docs/EXAMPLES.md)** - Express server, React component, batch conversion, and more
+- **[Bun Support](docs/BUN.md)** - Bun script mode and single-file executable notes
 
 ## System Requirements
 
 - Node.js 18.0.0+
+- Bun 1.1.0+
 - ~150MB disk space for WASM files
 - Browser: ~240MB initial download (cached after first load)
 
