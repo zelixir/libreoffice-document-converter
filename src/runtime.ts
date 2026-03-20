@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { existsSync, mkdirSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import { createRequire } from 'module';
@@ -66,7 +67,8 @@ async function extractBundledBunWasmDir(): Promise<string> {
     throw new Error('Bundled Bun WASM extraction is only available when running on Bun');
   }
 
-  const wasmDir = join(tmpdir(), 'libreoffice-document-converter-bun', process.pid.toString());
+  const extractionInstanceId = `${process.pid}-${Date.now()}-${randomUUID()}`;
+  const wasmDir = join(tmpdir(), 'libreoffice-document-converter-bun', extractionInstanceId);
   mkdirSync(wasmDir, { recursive: true });
 
   for (const filename of EMBEDDED_WASM_FILES) {
@@ -99,7 +101,12 @@ export async function resolveRuntimeWasmDirectory(wasmPath?: string): Promise<st
     }
 
     if (isBunRuntime()) {
-      extractedBunWasmDirPromise ??= extractBundledBunWasmDir();
+      if (!extractedBunWasmDirPromise) {
+        extractedBunWasmDirPromise = extractBundledBunWasmDir().catch((error: unknown) => {
+          extractedBunWasmDirPromise = null;
+          throw error;
+        });
+      }
       return extractedBunWasmDirPromise;
     }
   }

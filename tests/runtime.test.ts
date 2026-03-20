@@ -7,7 +7,7 @@ describe('runtime helpers', () => {
     expect(isBunRuntime()).toBe(false);
   });
 
-  it('resolves the packaged wasm directory by default', async () => {
+  it('resolves the repository packaged wasm directory by default', async () => {
     await expect(resolveRuntimeWasmDirectory()).resolves.toBe(resolve(process.cwd(), 'wasm'));
   });
 

@@ -243,9 +243,9 @@ export class LibreOfficeConverter implements ILibreOfficeConverter {
       console.log('[LibreOfficeConverter] Loading WASM module...', this.options.wasmPath, this.options.workerPath, this.options.wasmLoader);
     }
 
-    let resolvedWasmLoader: Awaited<ReturnType<typeof resolveRuntimeWasmLoader>>;
+    let resolvedRuntime: Awaited<ReturnType<typeof resolveRuntimeWasmLoader>>;
     try {
-      resolvedWasmLoader = await resolveRuntimeWasmLoader(this.options.wasmPath, this.options.wasmLoader);
+      resolvedRuntime = await resolveRuntimeWasmLoader(this.options.wasmPath, this.options.wasmLoader);
     } catch (error) {
       throw new ConversionError(
         ConversionErrorCode.WASM_NOT_INITIALIZED,
@@ -253,8 +253,8 @@ export class LibreOfficeConverter implements ILibreOfficeConverter {
       );
     }
 
-    this.options.wasmPath = resolvedWasmLoader.wasmDir;
-    this.options.wasmLoader = resolvedWasmLoader.wasmLoader;
+    this.options.wasmPath = resolvedRuntime.wasmDir;
+    this.options.wasmLoader = resolvedRuntime.wasmLoader;
 
     // Build loader config
     const config = {
@@ -267,7 +267,7 @@ export class LibreOfficeConverter implements ILibreOfficeConverter {
       },
     };
 
-    return await resolvedWasmLoader.wasmLoader.createModule(config);
+    return await resolvedRuntime.wasmLoader.createModule(config);
   }
 
   /**
