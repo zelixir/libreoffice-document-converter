@@ -29,6 +29,7 @@ import {
   PagePreview,
   RenderOptions,
 } from './types.js';
+import { resolveRuntimeWasmDirectory } from './runtime.js';
 
 // Re-export types used by consumers
 export type { LOKDocumentType, OutputFormat, PagePreview, DocumentInfo, EditorSession, RenderOptions };
@@ -115,6 +116,9 @@ export class WorkerConverter implements ILibreOfficeConverter {
           }
         }
       }
+
+      const wasmPath = await resolveRuntimeWasmDirectory(this.options.wasmPath);
+      this.options.wasmPath = wasmPath;
 
       // Create the worker
       this.worker = new Worker(workerPath);
@@ -584,4 +588,3 @@ export async function createWorkerConverter(
   await converter.initialize();
   return converter;
 }
-

@@ -12,6 +12,7 @@ Collection of example code for common use cases.
 - [Electron App](#electron-app)
 - [Worker Threads](#worker-threads)
 - [Streaming Large Files](#streaming-large-files)
+- [Bun](#bun)
 
 ---
 
@@ -186,6 +187,33 @@ async function parallelConvert(inputDir, outputDir, concurrency = 3) {
 
 parallelConvert('./docs', './pdfs', 4);
 ```
+
+---
+
+## Bun
+
+### Bun Script Mode
+
+Repository example:
+
+```bash
+npm run build
+bun examples/bun-script.ts tests/sample_2_page.docx /tmp/sample.pdf
+```
+
+The script-mode example uses `convertDocument()` directly so Bun can reuse the package's own LibreOffice runtime assets without additional setup.
+
+### Bun Single-file Executable
+
+Repository example:
+
+```bash
+npm run build
+bun build examples/bun-compiled.ts --compile --outfile ./libreoffice-bun-demo
+./libreoffice-bun-demo tests/sample_2_page.docx /tmp/sample.pdf
+```
+
+The compiled example uses `createConverter()` with no explicit `wasmLoader`. The library resolves and materializes the packaged LibreOffice runtime automatically so Emscripten still sees a real `wasm/` directory at runtime.
 
 ---
 
@@ -909,4 +937,3 @@ createConverter({ wasmPath: './wasm' }).then((c) => {
   app.listen(3000);
 });
 ```
-
