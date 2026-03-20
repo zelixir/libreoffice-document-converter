@@ -75,8 +75,11 @@ bun build examples/bun-compiled.ts --compile --outfile ./libreoffice-bun-demo
 ./libreoffice-bun-demo tests/sample_2_page.docx /tmp/sample.pdf
 ```
 
+The repository example currently assumes it is launched from the package root so it can reuse the already-built `./wasm` and `./dist/subprocess.worker.cjs` files.
+
 ## Scope and limitations
 
 - The Bun work in this PR focuses on the standard conversion path and the one-shot `convertDocument()` API.
 - `WorkerConverter` and `SubprocessConverter` benefit from the shared `wasmPath` resolution in normal Bun script mode.
 - The compiled Bun path intentionally routes the simplest public APIs through the direct converter flow because that is the most stable and least surprising packaging model.
+- When Bun needs to delegate subprocess work through Node, you can override the Node executable path with `LIBREOFFICE_CONVERTER_NODE_PATH=/absolute/path/to/node`.

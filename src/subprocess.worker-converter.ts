@@ -5,7 +5,7 @@
  * Includes retry logic for handling transient WASM memory errors.
  */
 
-import { fork, ChildProcess } from 'child_process';
+import { fork, ChildProcess, ForkOptions } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { randomUUID } from 'crypto';
@@ -30,7 +30,7 @@ import {
   PagePreview,
   RenderOptions,
 } from './types.js';
-import { resolveRuntimeWasmDirectory } from './runtime.js';
+import { getBunNodeExecPath, isBunRuntime, resolveRuntimeSubprocessWorkerPath, resolveRuntimeWasmDirectory } from './runtime.js';
 
 // Re-export types used by consumers
 export type { LOKDocumentType, OutputFormat, PagePreview, DocumentInfo, EditorSession, RenderOptions };
@@ -97,13 +97,19 @@ export class SubprocessConverter implements ILibreOfficeConverter {
       }
     }
 
+    this.workerPath = await resolveRuntimeSubprocessWorkerPath(this.options.workerPath);
     const wasmPath = await resolveRuntimeWasmDirectory(this.options.wasmPath);
     this.options.wasmPath = wasmPath;
-
-    this.child = fork(this.workerPath, [], {
+    const forkOptions: ForkOptions = {
       env: { ...process.env, WASM_PATH: wasmPath, VERBOSE: String(this.options.verbose || false) },
       stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
-    });
+    };
+
+    if (isBunRuntime()) {
+      forkOptions.execPath = getBunNodeExecPath();
+    }
+
+    this.child = fork(this.workerPath, [], forkOptions);
 
     this.child.stdout?.on('data', (d: Buffer) => { if (this.options.verbose) process.stdout.write(d); });
     this.child.stderr?.on('data', (d: Buffer) => { if (this.options.verbose) process.stderr.write(d); });

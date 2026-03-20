@@ -213,7 +213,7 @@ bun build examples/bun-compiled.ts --compile --outfile ./libreoffice-bun-demo
 ./libreoffice-bun-demo tests/sample_2_page.docx /tmp/sample.pdf
 ```
 
-The compiled example uses `createConverter()` with no explicit `wasmLoader`. The library resolves and materializes the packaged LibreOffice runtime automatically so Emscripten still sees a real `wasm/` directory at runtime.
+Run the compiled example from the package root after `npm run build`. It reuses the built `./wasm` directory and `./dist/subprocess.worker.cjs` file so the Bun-compiled binary can delegate conversion work to a stable subprocess path.
 
 ---
 

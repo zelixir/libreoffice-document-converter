@@ -5,12 +5,14 @@
  *   bun build examples/bun-compiled.ts --compile --outfile ./libreoffice-bun-demo
  *
  * Run:
+ *   # from the package root after `npm run build`
  *   ./libreoffice-bun-demo tests/sample_2_page.docx /tmp/sample.pdf
  */
 
 import { readFile, writeFile } from 'fs/promises';
-import { basename, extname } from 'path';
-import { createConverter } from '../dist/index.js';
+import { existsSync } from 'fs';
+import { basename, extname, resolve } from 'path';
+import { convertDocument } from '../dist/index.js';
 import type { OutputFormat } from '../dist/index.js';
 
 async function main() {
@@ -26,26 +28,29 @@ async function main() {
     throw new Error(`Could not infer output format from ${outputPath}`);
   }
 
-  const converter = await createConverter({
+  const wasmPath = resolve(process.cwd(), 'wasm');
+  const workerPath = resolve(process.cwd(), 'dist', 'subprocess.worker.cjs');
+  if (!existsSync(wasmPath) || !existsSync(workerPath)) {
+    throw new Error(
+      'The Bun compiled example must be run from the built package root so ./wasm and ./dist/subprocess.worker.cjs are available.'
+    );
+  }
+
+  const input = await readFile(inputPath);
+  const result = await convertDocument(input, { outputFormat }, {
     verbose: true,
+    wasmPath,
+    workerPath,
     onProgress: (progress) => {
       process.stdout.write(`\r[${progress.phase}] ${progress.percent}% ${progress.message}`);
     },
   });
+  await writeFile(outputPath, result.data);
 
-  try {
-    const input = await readFile(inputPath);
-    const result = await converter.convert(input, { outputFormat }, basename(inputPath));
-
-    await writeFile(outputPath, result.data);
-
-    console.log('\nDone');
-    console.log(`Input : ${basename(inputPath)}`);
-    console.log(`Output: ${outputPath}`);
-    console.log(`Bytes : ${result.data.length}`);
-  } finally {
-    await converter.destroy();
-  }
+  console.log('\nDone');
+  console.log(`Input : ${basename(inputPath)}`);
+  console.log(`Output: ${outputPath}`);
+  console.log(`Bytes : ${result.data.length}`);
 }
 
 main().catch((error) => {

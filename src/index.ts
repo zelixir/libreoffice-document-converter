@@ -84,7 +84,6 @@ export {
 import { LibreOfficeConverter } from './converter-node.js';
 import { createSubprocessConverter } from './subprocess.worker-converter.js';
 import type { ConversionOptions, ConversionResult, ImageOptions, LibreOfficeWasmOptions } from './types.js';
-import { isBunRuntime } from './runtime.js';
 
 /**
  * Image format options for exportAsImage
@@ -95,7 +94,6 @@ export type ImageFormat = 'png' | 'jpg' | 'svg';
 const isNode = typeof process !== 'undefined' &&
   process.versions != null &&
   process.versions.node != null;
-const isBun = isBunRuntime();
 
 /**
  * Create a configured LibreOffice converter instance
@@ -147,7 +145,7 @@ export async function convertDocument(
   // SubprocessConverter only supports basic conversions, not image/page options
   const isBasicConversion = !options.image;
 
-  if (isNode && !isBun && isBasicConversion) {
+  if (isNode && isBasicConversion) {
     const converter = await createSubprocessConverter(converterOptions);
     try {
       return await converter.convert(input, options);
